@@ -52,3 +52,5 @@ openssl ca -in svrcsr.pem -out svrcert.pem
 ## Test
 
 Build and run `tls`.
+
+Run `./tls -h` to show help message.
