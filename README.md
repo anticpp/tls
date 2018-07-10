@@ -24,10 +24,10 @@ openssl req -new -x509 -key cakey.pem -out cacert.pem
 Copy to CA home directory:
 
 ```
-## Default CA home directory is '/etc/pki/'
+## Default CA home directory is '/etc/pki/CA/'
 ## We use $ca_home
-cp cakey.pem $ca_home/CA/private/
-cp cacert.pem $ca_home/CA/
+cp cakey.pem $ca_home/private/
+cp cacert.pem $ca_home/
 ```
 
 ## Server certification
