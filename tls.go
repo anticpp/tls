@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
@@ -16,7 +15,7 @@ const svrKeyFile = "./svrkey.pem"
 func main() {
 	var addr string
 	var listenMode bool
-	flag.StringVar(&addr, "addr", "127.0.0.1:20012", "Address")
+	flag.StringVar(&addr, "addr", "localhost:20012", "Address")
 	flag.BoolVar(&listenMode, "l", false, "Listen mode")
 	flag.Parse()
 
@@ -41,16 +40,13 @@ func main() {
 			}
 			go func() {
 				log.Printf("Accept connection %v\n", conn.RemoteAddr())
-				defer conn.Close()
-				w := bufio.NewWriter(conn)
-				n, err := w.WriteString("Hello World")
+				defer func() {
+					log.Printf("Closing %v\n", conn.RemoteAddr())
+					conn.Close()
+				}()
+				n, err := conn.Write([]byte("Hello World"))
 				if err != nil {
 					log.Printf("WriteString fail: %v\n", err)
-					return
-				}
-				err = w.Flush()
-				if err != nil {
-					log.Printf("Flush fail: %v\n", err)
 					return
 				}
 				log.Printf("WriteString success bytes %v\n", n)
@@ -77,16 +73,16 @@ func main() {
 		}
 
 		log.Printf("Connect success\n")
+		tmpBuf := make([]byte, 1024)
 		for {
-			r := bufio.NewReader(conn)
-			s, err := r.ReadString('\n')
+			n, err := conn.Read(tmpBuf)
 			if err != nil {
-				log.Printf("ReadString err: %v\n", err)
+				log.Printf("Read err: %v\n", err)
 				conn.Close()
+				break
 			}
+			s := string(tmpBuf[0:n])
 			log.Printf("ReadString: %v\n", s)
 		}
-
-		log.Println("success")
 	}
 }
