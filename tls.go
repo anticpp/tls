@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -62,12 +63,18 @@ func main() {
 					}
 					log.Printf("Read request: %v", string(rbytes))
 
-					_, err = writer.Write([]byte("World\n"))
+					var ss = fmt.Sprintf("World %v\n", time.Now().String())
+					_, err = writer.Write([]byte(ss))
 					if err != nil {
 						log.Printf("WriteString fail: %v\n", err)
-						return
+						break
 					}
-					log.Printf("Send response: World\n")
+					err = writer.Flush()
+					if err != nil {
+						log.Printf("WriteString fail: %v\n", err)
+						break
+					}
+					log.Printf("Send response: %v", ss)
 				}
 			}()
 		}
@@ -97,7 +104,8 @@ func main() {
 		for {
 			var err error
 			var rbytes []byte
-			_, err = writer.Write([]byte("Hello\n"))
+			var ss = fmt.Sprintf("Hello %v\n", time.Now().String())
+			_, err = writer.Write([]byte(ss))
 			if err != nil {
 				log.Printf("Write err: %v\n", err)
 				conn.Close()
@@ -109,7 +117,7 @@ func main() {
 				conn.Close()
 				break
 			}
-			log.Println("Send request: Hello")
+			log.Printf("Send request: %v", ss)
 
 			rbytes, err = reader.ReadBytes('\n')
 			if err != nil {
@@ -117,7 +125,7 @@ func main() {
 				conn.Close()
 				break
 			}
-			log.Printf("Read response: %v\n", string(rbytes))
+			log.Printf("Read response: %v", string(rbytes))
 
 			time.Sleep(1 * time.Second)
 		}

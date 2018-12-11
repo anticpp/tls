@@ -8,7 +8,7 @@ Demonstrate SSL/TLS.
 
 ## CA
 
-Firstly, you need a CA(Certificate Authority).
+First of all, you need a CA(Certificate Authority).
 If you already have a one, skip this section.
 
 Generate CA key and certification:
@@ -20,6 +20,8 @@ openssl genrsa -out cakey.pem
 ## Generate x509 certification
 openssl req -new -x509 -key cakey.pem -out cacert.pem
 ```
+
+> Note: Set `Common Name` to `example.com` when generating certification.
 
 Copy to CA home directory:
 
@@ -40,15 +42,20 @@ openssl genrsa -out svrkey.pem
 
 ## Generate CSR(Certificate Signature Request)
 openssl req -new -key svrkey.pem -out svrcsr.pem
+
 ```
 
-> Note: Set `Common Name` to `example.com`
+> Note: Set `Common Name` to `example.com` when generating CSR.
 
 Sign CSR with CA:
 
 ```
 ## Sign with CA
+## Default using key and certificate in directory `$ca_home`, etc. '/etc/pki/CA/'
 openssl ca -in svrcsr.pem -out svrcert.pem
+
+## Or sign with specify key and certificate, using `-keyfile` and `-cert`
+openssl ca -keyfile cakey.pem -cert cacert.pem -in svrcsr.pem -out svrcert.pem
 ```
 
 ## Add host
