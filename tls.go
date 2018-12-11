@@ -1,22 +1,25 @@
 package main
 
 import (
+	"bufio"
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
-const caCertFile = "./cacert.pem"
-const svrCertFile = "./svrcert.pem"
-const svrKeyFile = "./svrkey.pem"
+var caCertFile = "./cacert.pem"
+var svrCertFile = "./svrcert.pem"
+var svrKeyFile = "./svrkey.pem"
 
 func main() {
 	var addr string
 	var listenMode bool
 	flag.StringVar(&addr, "addr", "localhost:20012", "Address")
 	flag.BoolVar(&listenMode, "l", false, "Listen mode")
+	flag.StringVar(&caCertFile, "ca", "/etc/pki/CA/cacert.pem", "CA certification")
 	flag.Parse()
 
 	if listenMode {
@@ -38,18 +41,33 @@ func main() {
 				log.Printf("Accept fail: %v", err)
 				continue
 			}
+			reader := bufio.NewReader(conn)
+			writer := bufio.NewWriter(conn)
 			go func() {
 				log.Printf("Accept connection %v\n", conn.RemoteAddr())
 				defer func() {
 					log.Printf("Closing %v\n", conn.RemoteAddr())
 					conn.Close()
 				}()
-				n, err := conn.Write([]byte("Hello World"))
-				if err != nil {
-					log.Printf("WriteString fail: %v\n", err)
-					return
+
+				for {
+					var rbytes []byte
+					var err error
+					rbytes, err = reader.ReadBytes('\n')
+					if err != nil {
+						log.Printf("Flush err: %v\n", err)
+						conn.Close()
+						break
+					}
+					log.Printf("Read request: %v", string(rbytes))
+
+					_, err = writer.Write([]byte("World\n"))
+					if err != nil {
+						log.Printf("WriteString fail: %v\n", err)
+						return
+					}
+					log.Printf("Send response: World\n")
 				}
-				log.Printf("WriteString success bytes %v\n", n)
 			}()
 		}
 	} else {
@@ -73,16 +91,34 @@ func main() {
 		}
 
 		log.Printf("Connect success\n")
-		tmpBuf := make([]byte, 1024)
+		reader := bufio.NewReader(conn)
+		writer := bufio.NewWriter(conn)
 		for {
-			n, err := conn.Read(tmpBuf)
+			var err error
+			var rbytes []byte
+			_, err = writer.Write([]byte("Hello\n"))
+			if err != nil {
+				log.Printf("Write err: %v\n", err)
+				conn.Close()
+				break
+			}
+			err = writer.Flush()
+			if err != nil {
+				log.Printf("Flush err: %v\n", err)
+				conn.Close()
+				break
+			}
+			log.Println("Send request: Hello")
+
+			rbytes, err = reader.ReadBytes('\n')
 			if err != nil {
 				log.Printf("Read err: %v\n", err)
 				conn.Close()
 				break
 			}
-			s := string(tmpBuf[0:n])
-			log.Printf("ReadString: %v\n", s)
+			log.Printf("Read response: %v\n", string(rbytes))
+
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

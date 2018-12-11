@@ -55,3 +55,9 @@ Build and run `tls`.
 
 Run server with `./tls -l`.
 Run client with `./tls`.
+
+## Show certificate information
+
+```
+openssl x509 -in svrcert.pem -noout -text
+```
