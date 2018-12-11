@@ -50,12 +50,13 @@ func main() {
 					conn.Close()
 				}()
 
+				log.Println("Begin to process connection")
 				for {
 					var rbytes []byte
 					var err error
 					rbytes, err = reader.ReadBytes('\n')
 					if err != nil {
-						log.Printf("Flush err: %v\n", err)
+						log.Printf("Read err: %v\n", err)
 						conn.Close()
 						break
 					}

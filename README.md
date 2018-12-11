@@ -42,6 +42,8 @@ openssl genrsa -out svrkey.pem
 openssl req -new -key svrkey.pem -out svrcsr.pem
 ```
 
+> Note: Set `Common Name` to `example.com`
+
 Sign CSR with CA:
 
 ```
@@ -49,12 +51,20 @@ Sign CSR with CA:
 openssl ca -in svrcsr.pem -out svrcert.pem
 ```
 
+## Add host
+
+Add host line to your `/etc/hosts`, as below.
+
+```
+127.0.0.1 example.com
+```
+
 ## Test
 
 Build and run `tls`.
 
 Run server with `./tls -l`.
-Run client with `./tls`.
+Run client with `./tls -addr=example.com:20012`.
 
 ## Show certificate information
 
