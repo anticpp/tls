@@ -71,7 +71,8 @@ Add host line to your `/etc/hosts`, as below.
 Build and run `tls`.
 
 Run server with `./tls -l`.
-Run client with `./tls -addr=example.com:20012`.
+Run client with `./tls -addr=example.com:20012` 
+    or using specify `CA certification` `./tls -addr=example.com:20012 -ca=./cacert.pem`
 
 ## Show certificate information
 
