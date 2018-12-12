@@ -79,3 +79,18 @@ Run client with `./tls -addr=example.com:20012`
 ```
 openssl x509 -in svrcert.pem -noout -text
 ```
+
+## Errors
+
+Error:
+
+```
+failed to update database
+TXT_DB error number 2
+```
+
+Problem: 
+If you generate a signed certificate with the same CN (Common Name) information that the CA certificate that you've generated before.
+
+Solution:
+Use `openssl ca -revoke <path-to-certfile>` to revoke the exsisting certificate. You can find it at `$ca_home/newcerts/`.
