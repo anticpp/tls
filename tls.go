@@ -20,7 +20,7 @@ func main() {
 	var listen bool
 	flag.StringVar(&addr, "addr", "localhost:20012", "Address")
 	flag.BoolVar(&listen, "l", false, "Listen mode")
-	flag.StringVar(&caCertPem, "ca", "./cacert.pem", "CA certification")
+	flag.StringVar(&caCertPem, "ca", "/etc/pki/CA/cacert.pem", "CA certification")
 	flag.Parse()
 
 	if listen {
@@ -73,6 +73,7 @@ func main() {
 			}()
 		}
 	} else {
+		fmt.Printf("Reading CA certificate %v\n", caCertPem)
 		cert, err := ioutil.ReadFile(caCertPem)
 		if err != nil {
 			log.Fatalf("Read CaCertPem fail: %v\n", err)
@@ -120,6 +121,7 @@ func main() {
 				break
 			}
 			log.Printf("Read response: %v", string(rbuf))
+			break
 		}
 	}
 }
