@@ -11,20 +11,20 @@ import (
 	"time"
 )
 
-var caCertFile = "./cacert.pem"
-var svrCertFile = "./svrcert.pem"
-var svrKeyFile = "./svrkey.pem"
+var caCertPem = "./cacert.pem"
+var svrCertPem = "./svrcert.pem"
+var svrKeyPem = "./svrkey.pem"
 
 func main() {
 	var addr string
-	var listenMode bool
+	var listen bool
 	flag.StringVar(&addr, "addr", "localhost:20012", "Address")
-	flag.BoolVar(&listenMode, "l", false, "Listen mode")
-	flag.StringVar(&caCertFile, "ca", "/etc/pki/CA/cacert.pem", "CA certification")
+	flag.BoolVar(&listen, "l", false, "Listen mode")
+	flag.StringVar(&caCertPem, "ca", "./cacert.pem", "CA certification")
 	flag.Parse()
 
-	if listenMode {
-		cert, err := tls.LoadX509KeyPair(svrCertFile, svrKeyFile)
+	if listen {
+		cert, err := tls.LoadX509KeyPair(svrCertPem, svrKeyPem)
 		if err != nil {
 			log.Fatalf("LoadX509KeyPair fail; %v\n", err)
 		}
@@ -42,50 +42,44 @@ func main() {
 				log.Printf("Accept fail: %v", err)
 				continue
 			}
-			reader := bufio.NewReader(conn)
-			writer := bufio.NewWriter(conn)
 			go func() {
-				log.Printf("Accept connection %v\n", conn.RemoteAddr())
 				defer func() {
 					log.Printf("Closing %v\n", conn.RemoteAddr())
 					conn.Close()
 				}()
 
-				log.Println("Begin to process connection")
-				for {
-					var rbytes []byte
-					var err error
-					rbytes, err = reader.ReadBytes('\n')
-					if err != nil {
-						log.Printf("Read err: %v\n", err)
-						conn.Close()
-						break
-					}
-					log.Printf("Read request: %v", string(rbytes))
+				log.Printf("Accept connection %v\n", conn.RemoteAddr())
+				reader := bufio.NewReader(conn)
+				writer := bufio.NewWriter(conn)
 
-					var ss = fmt.Sprintf("World %v\n", time.Now().String())
-					_, err = writer.Write([]byte(ss))
-					if err != nil {
-						log.Printf("WriteString fail: %v\n", err)
-						break
-					}
-					err = writer.Flush()
-					if err != nil {
-						log.Printf("WriteString fail: %v\n", err)
-						break
-					}
-					log.Printf("Send response: %v", ss)
+				var rbuf []byte
+				var err error
+				rbuf, err = reader.ReadBytes('\n')
+				if err != nil {
+					log.Printf("Read err: %v\n", err)
+					conn.Close()
+					return
 				}
+				log.Printf("Read request: %v", string(rbuf))
+
+				var sbuf = fmt.Sprintf("World %v\n", time.Now().String())
+				_, err = writer.Write([]byte(sbuf))
+				if err != nil {
+					log.Printf("Write err: %v\n", err)
+					return
+				}
+				writer.Flush()
+				log.Printf("Send response: %v", sbuf)
 			}()
 		}
 	} else {
-		caCertPEM, err := ioutil.ReadFile(caCertFile)
+		cert, err := ioutil.ReadFile(caCertPem)
 		if err != nil {
 			log.Fatalf("Read CaCertPem fail: %v\n", err)
 		}
 
 		roots := x509.NewCertPool()
-		ok := roots.AppendCertsFromPEM(caCertPEM)
+		ok := roots.AppendCertsFromPEM(cert)
 		if !ok {
 			log.Fatalf("AppendCertsFromPEM fail: %v\n", err)
 		}
@@ -99,35 +93,33 @@ func main() {
 		}
 
 		log.Printf("Connect success\n")
-		reader := bufio.NewReader(conn)
-		writer := bufio.NewWriter(conn)
 		for {
+			defer func() {
+				log.Printf("Closing %v\n", conn.RemoteAddr())
+				conn.Close()
+			}()
+
+			reader := bufio.NewReader(conn)
+			writer := bufio.NewWriter(conn)
+
 			var err error
-			var rbytes []byte
-			var ss = fmt.Sprintf("Hello %v\n", time.Now().String())
-			_, err = writer.Write([]byte(ss))
+			var sbuf = fmt.Sprintf("Hello %v\n", time.Now().String())
+			_, err = writer.Write([]byte(sbuf))
 			if err != nil {
 				log.Printf("Write err: %v\n", err)
-				conn.Close()
 				break
 			}
-			err = writer.Flush()
-			if err != nil {
-				log.Printf("Flush err: %v\n", err)
-				conn.Close()
-				break
-			}
-			log.Printf("Send request: %v", ss)
+			writer.Flush()
+			log.Printf("Send request: %v", sbuf)
 
-			rbytes, err = reader.ReadBytes('\n')
+			var rbuf []byte
+			rbuf, err = reader.ReadBytes('\n')
 			if err != nil {
 				log.Printf("Read err: %v\n", err)
 				conn.Close()
 				break
 			}
-			log.Printf("Read response: %v", string(rbytes))
-
-			time.Sleep(1 * time.Second)
+			log.Printf("Read response: %v", string(rbuf))
 		}
 	}
 }
