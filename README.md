@@ -1,15 +1,30 @@
 ## Purpose
 
-Demonstrate SSL/TLS.
+Simple demonstration on ssl/tls for better understanding.
 
-## Requirement
+## Keywords
 
-[Openssl](https://www.openssl.org/) is required to manage certification.
+Openssl - A tool to manage ssl/tls stuff.
+CA - Certificate Authority.
+x509 - A standard format of public key certificates. Which suffix is `.pem`.
+PKI - Public Key Infrastructure.
+
+Certificate - Certificate.
+CSR - Certificate Signing Request.
 
 ## CA
 
-First of all, you need a CA(Certificate Authority).
-If you already have a one, skip this section.
+Let's build a CA(Certificate Authority). If you already have a one, skip this section.
+
+You should have installed [Openssl](https://www.openssl.org/) on your host, then you can find the pki(Public Key Infrastructure) directory at `/etc/pki/`. The CA files will be located at `/etc/pki/CA/`.
+
+Create CA `index.txt` and `serial`:
+
+```
+cd /etc/pki/CA/
+touch index.txt serial
+echo 01 > serial
+```
 
 Generate CA key and certification:
 
@@ -21,15 +36,13 @@ openssl genrsa -out cakey.pem
 openssl req -new -x509 -key cakey.pem -out cacert.pem
 ```
 
-> Note: Set `Common Name` to `example.com` when generating certification.
+> Note: Set `Common Name` to something like `Root CA`.
 
 Copy to CA home directory:
 
 ```
-## Default CA home directory is '/etc/pki/CA/'
-## We use $ca_home
-cp cakey.pem $ca_home/private/
-cp cacert.pem $ca_home/
+cp cakey.pem /etc/pki/CA/private/
+cp cacert.pem /etc/pki/CA/
 ```
 
 ## Server certification
@@ -45,7 +58,7 @@ openssl req -new -key svrkey.pem -out svrcsr.pem
 
 ```
 
-> Note: Set `Common Name` to `example.com` when generating CSR.
+> Note: Set `Common Name` to `*.example.com` when generating CSR, which is a wildcard name.
 
 Sign CSR with CA:
 
@@ -60,21 +73,27 @@ openssl ca -keyfile cakey.pem -cert cacert.pem -in svrcsr.pem -out svrcert.pem
 
 ## Add host
 
-Add host line to your `/etc/hosts`, as below.
+Add line to your `/etc/hosts`.
 
 ```
-127.0.0.1 example.com
+127.0.0.1 www.example.com
 ```
 
 ## Test
 
-Build and run `tls`.
+Server side:
 
-Run server with `./tls -l`.
-Run client with `./tls -addr=example.com:20012` 
-    or using specify `CA certification` `./tls -addr=example.com:20012 -ca=./cacert.pem`
+```
+./tls -l
+```
 
-## Show certificate information
+Client side:
+
+```
+./tls -addr=www.example.com:20012
+``` 
+
+## How to show certificate information
 
 ```
 openssl x509 -in svrcert.pem -noout -text
