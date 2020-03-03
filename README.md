@@ -66,9 +66,6 @@ Sign CSR with CA:
 ## Sign with CA
 ## Default using key and certificate in directory `$ca_home`, etc. '/etc/pki/CA/'
 openssl ca -in svrcsr.pem -out svrcert.pem
-
-## Or sign with specify key and certificate, using `-keyfile` and `-cert`
-openssl ca -keyfile cakey.pem -cert cacert.pem -in svrcsr.pem -out svrcert.pem
 ```
 
 ## Add host
