@@ -4,13 +4,13 @@ Simple demonstration on ssl/tls for better understanding.
 
 ## Keywords
 
-Openssl - A tool to manage ssl/tls stuff.
-CA - Certificate Authority.
-x509 - A standard format of public key certificates. Which suffix is `.pem`.
-PKI - Public Key Infrastructure.
+- Openssl - A tool to manage ssl/tls stuff.
+- CA - Certificate Authority.
+- x509 - A standard format of public key certificates. Which suffix is `.pem`.
+- PKI - Public Key Infrastructure.
 
-Certificate - Certificate.
-CSR - Certificate Signing Request.
+- Certificate - Certificate.
+- CSR - Certificate Signing Request.
 
 ## CA
 
