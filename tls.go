@@ -60,16 +60,17 @@ func main() {
 					conn.Close()
 					return
 				}
-				log.Printf("Read request: %v", string(rbuf))
+				log.Printf("%v", string(rbuf))
 
-				var sbuf = fmt.Sprintf("World %v\n", time.Now().String())
+				var sbuf = fmt.Sprintf("[%v] Server World\n",
+					time.Now().Format(time.UnixDate))
 				_, err = writer.Write([]byte(sbuf))
 				if err != nil {
 					log.Printf("Write err: %v\n", err)
 					return
 				}
 				writer.Flush()
-				log.Printf("Send response: %v", sbuf)
+				log.Printf("%v", sbuf)
 			}()
 		}
 	} else {
@@ -104,14 +105,15 @@ func main() {
 			writer := bufio.NewWriter(conn)
 
 			var err error
-			var sbuf = fmt.Sprintf("Hello %v\n", time.Now().String())
+			var sbuf = fmt.Sprintf("[%v] Client Hello\n",
+				time.Now().Format(time.UnixDate))
 			_, err = writer.Write([]byte(sbuf))
 			if err != nil {
 				log.Printf("Write err: %v\n", err)
 				break
 			}
 			writer.Flush()
-			log.Printf("Send request: %v", sbuf)
+			log.Printf("%v", sbuf)
 
 			var rbuf []byte
 			rbuf, err = reader.ReadBytes('\n')
@@ -120,7 +122,7 @@ func main() {
 				conn.Close()
 				break
 			}
-			log.Printf("Read response: %v", string(rbuf))
+			log.Printf("%v", string(rbuf))
 			break
 		}
 	}
