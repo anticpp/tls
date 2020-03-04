@@ -22,9 +22,9 @@ func main() {
 	var listen bool
 	var mtls bool
 	var serverName string
-	flag.StringVar(&addr, "addr", "localhost:20012", "Address.")
-	flag.BoolVar(&listen, "l", false, "Listen mode.")
-	flag.StringVar(&serverName, "sn", "www.example.com", "Server name.")
+	flag.StringVar(&addr, "addr", "localhost:20012", "Address")
+	flag.BoolVar(&listen, "l", false, "Listen mode")
+	flag.BoolVar(&serverName, "sn", "www.example.com", "Server name.")
 	flag.BoolVar(&mtls, "mtls", false,
 		"mTLS on. Server must verify client certificate. Client side should provide client certificate.")
 	flag.StringVar(&caCertPem, "ca", "/etc/pki/CA/cacert.pem", "CA certification")
@@ -104,8 +104,7 @@ func main() {
 		}
 	} else {
 		c := &tls.Config{
-			RootCAs:    roots,
-			ServerName: serverName,
+			RootCAs: roots,
 		}
 		if mtls {
 			// Client certificate
@@ -120,7 +119,6 @@ func main() {
 			c.Certificates = []tls.Certificate{cert}
 		}
 		log.Printf("Dialing %v\n", addr)
-		log.Printf("Server name %v\n", serverName)
 		conn, err := tls.Dial("tcp", addr, c)
 		if err != nil {
 			log.Fatalf("Dial fail addr %v, %v", addr, err)

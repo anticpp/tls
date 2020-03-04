@@ -1,6 +1,6 @@
 ## Purpose
 
-Simple demonstration on ssl/tls for better understanding.
+Demonstrate about ssl/tls with simple example.
 
 ## Keywords
 
@@ -11,6 +11,8 @@ Simple demonstration on ssl/tls for better understanding.
 
 - Certificate - Certificate.
 - CSR - Certificate Signing Request.
+
+- mTLS - Mutual TLS. Both side verify certificate of the other.
 
 ## CA
 
@@ -33,10 +35,9 @@ Generate CA key and certification:
 openssl genrsa -out cakey.pem
 
 ## Generate x509 certification
+## Set common name to 'Root CA'.
 openssl req -new -x509 -key cakey.pem -out cacert.pem
 ```
-
-> Note: Set `Common Name` to something like `Root CA`.
 
 Copy to CA home directory:
 
@@ -54,43 +55,54 @@ Generate server key and CSR(Certificate Signature Request):
 openssl genrsa -out svrkey.pem
 
 ## Generate CSR(Certificate Signature Request)
+## Set common name to '*.example.com', which is a wildcard name.
 openssl req -new -key svrkey.pem -out svrcsr.pem
 
 ```
-
-> Note: Set `Common Name` to `*.example.com` when generating CSR, which is a wildcard name.
 
 Sign CSR with CA:
 
 ```
 ## Sign with CA
-## Default using key and certificate in directory `$ca_home`, etc. '/etc/pki/CA/'
 openssl ca -in svrcsr.pem -out svrcert.pem
 ```
 
-## Add host
+## Simple test
 
-Add line to your `/etc/hosts`.
-
-```
-127.0.0.1 www.example.com
-```
-
-## Test
-
-Server side:
+Run server:
 
 ```
 ./tls -l
 ```
 
-Client side:
+Run client:
 
 ```
-./tls -addr=www.example.com:20012
+./tls 
 ``` 
 
-## How to show certificate information
+## mTLS test
+
+With mTLS mode, you should create client key and certificate as the server does. For simplify, you can copy the server key and certificate.
+
+```
+cp svrkey.pem cltkey.pem
+cp svrcert.pem cltcert.pem
+```
+
+Run server:
+
+```
+./tls -l -mtls
+```
+
+Run client:
+
+```
+./tls -mtls
+```
+
+## Show certificate
 
 ```
 openssl x509 -in svrcert.pem -noout -text
