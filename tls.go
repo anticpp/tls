@@ -11,9 +11,11 @@ import (
 	"time"
 )
 
-var caCertPem = "./cacert.pem"
+var caCertPem = "/etc/pki/CA/cacert.pem"
 var svrCertPem = "./svrcert.pem"
 var svrKeyPem = "./svrkey.pem"
+var clientCertPem = "./cltcert.pem"
+var clientKeyPem = "./cltkey.pem"
 
 func main() {
 	var addr string
@@ -23,14 +25,30 @@ func main() {
 	flag.StringVar(&caCertPem, "ca", "/etc/pki/CA/cacert.pem", "CA certification")
 	flag.Parse()
 
+	fmt.Printf("Using CA certificate %v\n", caCertPem)
+	cert, err := ioutil.ReadFile(caCertPem)
+	if err != nil {
+		log.Fatalf("Read CaCertPem fail: %v\n", err)
+	}
+
+	roots := x509.NewCertPool()
+	ok := roots.AppendCertsFromPEM(cert)
+	if !ok {
+		log.Fatalf("AppendCertsFromPEM fail: %v\n", err)
+	}
+
 	if listen {
+		fmt.Printf("Using server key %v\n", svrKeyPem)
+		fmt.Printf("Using server certificate %v\n", svrCertPem)
 		cert, err := tls.LoadX509KeyPair(svrCertPem, svrKeyPem)
 		if err != nil {
 			log.Fatalf("LoadX509KeyPair fail; %v\n", err)
 		}
 		log.Printf("Listening %v\n", addr)
 		l, err := tls.Listen("tcp", addr, &tls.Config{
+			ClientCAs:    roots,
 			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
 		})
 		if err != nil {
 			log.Fatalf("Listen fail: %v\n", err)
@@ -74,21 +92,21 @@ func main() {
 			}()
 		}
 	} else {
-		fmt.Printf("Reading CA certificate %v\n", caCertPem)
+<<<<<<< Updated upstream
+		fmt.Printf("Using CA certificate %v\n", caCertPem)
 		cert, err := ioutil.ReadFile(caCertPem)
+=======
+		fmt.Printf("Using client key %v\n", clientKeyPem)
+		fmt.Printf("Using client certificate %v\n", clientCertPem)
+		cert, err := tls.LoadX509KeyPair(clientCertPem, clientKeyPem)
+>>>>>>> Stashed changes
 		if err != nil {
-			log.Fatalf("Read CaCertPem fail: %v\n", err)
+			log.Fatalf("LoadX509KeyPair fail; %v\n", err)
 		}
-
-		roots := x509.NewCertPool()
-		ok := roots.AppendCertsFromPEM(cert)
-		if !ok {
-			log.Fatalf("AppendCertsFromPEM fail: %v\n", err)
-		}
-
 		log.Printf("Dialing %v\n", addr)
 		conn, err := tls.Dial("tcp", addr, &tls.Config{
-			RootCAs: roots,
+			RootCAs:      roots,
+			Certificates: []tls.Certificate{cert},
 		})
 		if err != nil {
 			log.Fatalf("Dial fail addr %v, %v", addr, err)
