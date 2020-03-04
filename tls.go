@@ -92,14 +92,9 @@ func main() {
 			}()
 		}
 	} else {
-<<<<<<< Updated upstream
-		fmt.Printf("Using CA certificate %v\n", caCertPem)
-		cert, err := ioutil.ReadFile(caCertPem)
-=======
 		fmt.Printf("Using client key %v\n", clientKeyPem)
 		fmt.Printf("Using client certificate %v\n", clientCertPem)
 		cert, err := tls.LoadX509KeyPair(clientCertPem, clientKeyPem)
->>>>>>> Stashed changes
 		if err != nil {
 			log.Fatalf("LoadX509KeyPair fail; %v\n", err)
 		}
